@@ -1,0 +1,40 @@
+<div class="container marketing" ng-controller='getStats'>
+
+  <hr class="featurette-divider">
+
+  <div class="featurette">
+    <!-- <img class="featurette-image pull-right" src="../assets/img/examples/browser-icon-chrome.png"> -->
+    <h2 class="featurette-heading pagination-centered"><span class="muted">Hi</span> {{username}} <br> 
+      <h3 class="featurette-heading pagination-centered"><span class="muted">Welcome to Your Day In Review</span> </h3>
+    </h2>
+  </div>
+
+  <hr class="featurette-divider">
+
+  <div class="featurette">
+    <!-- <img class="featurette-image pull-right" src="../assets/img/examples/browser-icon-chrome.png"> -->
+    <h2 class="featurette-heading"><span class="muted">Total Number of Streams</span> {{total}}</h2>
+    <br>
+    <h2 class="featurette-heading pull-right"><span class="muted">Total Minutes Streaming</span> {{minutes}}</h2>
+  </div>
+  
+  <hr class="featurette-divider">
+
+  <div class="featurette">
+    <h2 class="featurette-heading"><span class="muted">Top Artist<br><br></span> {{MaxArtist}}</h2>
+      <img class="featurette-image pull-right" src="{{MaxArtistArt}}">
+    <h4 class="featurette-heading"><br>{{MaxArtistPlays}} Streams</h4>
+  </div>
+  
+  <hr class="featurette-divider">
+
+    <div class="featurette">
+    <h2 class="featurette-heading"><span class="muted">Top Song<br><br></span> {{MaxSong}}</h2>
+      <img class="featurette-image pull-right" src="{{MaxSongArt}}">
+    <h3 class="featurette-heading"><span class="muted">{{MaxSongArtist}}</span></h3>
+    <h4 class="featurette-heading"><br>{{MaxSongPlays}} Streams</h4>
+  </div>
+  
+  <hr class="featurette-divider">
+
+</div> 

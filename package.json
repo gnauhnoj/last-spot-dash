@@ -1,0 +1,16 @@
+{
+  "name": "package",
+  "version": "0.0.0",
+  "dependencies": {
+    "express": "~3.4.8",
+    "mongoose": "*",
+    "lastfmapi": "0.0.5",
+    "express-partials": "^0.2.0",
+    "request": "^2.36.0",
+    "bluebird": "^1.2.4"
+  },
+  "devDependencies": {
+    "body-parser": "*",
+    "tiny-lr": "*",
+  }
+}

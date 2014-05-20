@@ -1,0 +1,67 @@
+0 info it worked if it ends with ok
+1 verbose cli [ 'node', '/usr/local/bin/npm', 'install', 'bodyParser', '--save' ]
+2 info using npm@1.4.3
+3 info using node@v0.10.26
+4 warn package.json package@0.0.0 No description
+5 warn package.json package@0.0.0 No repository field.
+6 warn package.json package@0.0.0 No README data
+7 verbose readDependencies using package.json deps
+8 verbose cache add [ 'bodyParser', null ]
+9 verbose cache add name=undefined spec="bodyParser" args=["bodyParser",null]
+10 verbose parsed url { protocol: null,
+10 verbose parsed url   slashes: null,
+10 verbose parsed url   auth: null,
+10 verbose parsed url   host: null,
+10 verbose parsed url   port: null,
+10 verbose parsed url   hostname: null,
+10 verbose parsed url   hash: null,
+10 verbose parsed url   search: null,
+10 verbose parsed url   query: null,
+10 verbose parsed url   pathname: 'bodyParser',
+10 verbose parsed url   path: 'bodyParser',
+10 verbose parsed url   href: 'bodyParser' }
+11 silly lockFile caa4c3c7-bodyParser bodyParser
+12 verbose lock bodyParser /Users/jhh11/.npm/caa4c3c7-bodyParser.lock
+13 silly lockFile caa4c3c7-bodyParser bodyParser
+14 silly lockFile caa4c3c7-bodyParser bodyParser
+15 verbose addNamed [ 'bodyParser', '' ]
+16 verbose addNamed [ null, '*' ]
+17 silly lockFile e0b6bd45-bodyParser bodyParser@
+18 verbose lock bodyParser@ /Users/jhh11/.npm/e0b6bd45-bodyParser.lock
+19 silly addNameRange { name: 'bodyParser', range: '*', hasData: false }
+20 verbose url raw bodyParser
+21 verbose url resolving [ 'https://registry.npmjs.org/', './bodyParser' ]
+22 verbose url resolved https://registry.npmjs.org/bodyParser
+23 info trying registry request attempt 1 at 18:21:20
+24 http GET https://registry.npmjs.org/bodyParser
+25 http 404 https://registry.npmjs.org/bodyParser
+26 silly registry.get cb [ 404,
+26 silly registry.get   { date: 'Tue, 20 May 2014 01:21:20 GMT',
+26 silly registry.get     server: 'CouchDB/1.5.0 (Erlang OTP/R16B)',
+26 silly registry.get     'content-type': 'application/json',
+26 silly registry.get     via: '1.1 varnish',
+26 silly registry.get     'cache-control': 'max-age=0',
+26 silly registry.get     'content-length': '52',
+26 silly registry.get     'accept-ranges': 'bytes',
+26 silly registry.get     age: '0',
+26 silly registry.get     'x-served-by': 'cache-v36-ASH, cache-lax1425-LAX',
+26 silly registry.get     'x-cache': 'MISS, MISS',
+26 silly registry.get     'x-cache-hits': '0, 0',
+26 silly registry.get     'x-timer': 'S1400548880.149920464,VS0,VS32,VE120,VE152',
+26 silly registry.get     'keep-alive': 'timeout=10, max=50',
+26 silly registry.get     connection: 'Keep-Alive' } ]
+27 silly lockFile e0b6bd45-bodyParser bodyParser@
+28 silly lockFile e0b6bd45-bodyParser bodyParser@
+29 error 404 'bodyParser' is not in the npm registry.
+29 error 404 You should bug the author to publish it
+29 error 404 It was specified as a dependency of 'package'
+29 error 404
+29 error 404 Note that you can also install from a
+29 error 404 tarball, folder, or http url, or git url.
+30 error System Darwin 13.1.0
+31 error command "node" "/usr/local/bin/npm" "install" "bodyParser" "--save"
+32 error cwd /Users/jhh11/Copy/hackreactor/last-spot-dash
+33 error node -v v0.10.26
+34 error npm -v 1.4.3
+35 error code E404
+36 verbose exit [ 1, true ]
