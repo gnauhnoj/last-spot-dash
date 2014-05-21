@@ -1,5 +1,4 @@
-var app = angular.module('last-spot-dash', ['ngRoute']);
- 
+var app = angular.module('last-spot-dash', ['ngRoute']); 
 
 app.config(function($routeProvider, $locationProvider) {
   $locationProvider.html5Mode(true);

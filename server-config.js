@@ -2,15 +2,16 @@ var express = require('express');
 var partials = require('express-partials');
 
 var handler = require('./server/lib/request-handler');
+var lfm = handler.lfm;
 
 var app = express();
-var lfm = handler.lfm;
 var db = require('./client/app/config');
 var Report = require('./client/app/models/report.js');
+var Song = require('./client/app/models/song.js');
+var Artist = require('./client/app/models/artist.js');
 
 var username;
 var key;
-
 
 app.configure(function() {
   app.use(express.bodyParser());
@@ -34,8 +35,17 @@ app.get('/auth', function(req, res) {
       key = session.key;
 
       Report.remove({}, function(err) { 
-        console.log('collection removed');
+        console.log('Report collection removed');
       });
+
+      Song.remove({}, function(err) { 
+        console.log('Song collection removed');
+      });
+
+      Artist.remove({}, function(err) { 
+        console.log('Artist collection removed');
+      });
+
       res.redirect('/getstats');
       console.log(username);
       console.log(key);
@@ -50,162 +60,199 @@ app.get('/getstats', function(req, res) {
       'key' : key
   };
 
-  // hard coded date - TODO: Add functionality to specify length
-  // var dateTime = (new Date().getTime()/ 1000) - (86400*30); // 1 month
-  // var dateTime = (new Date().getTime()/ 1000) - (86400); // 1 day
-  var dateTime = (new Date().getTime()/ 1000) - (86400/24); // 1 hour
+    // hard coded date - TODO: Add functionality to specify length
+    // var dateTime = (new Date().getTime()/ 1000) - (86400*30); // 1 month
+    // var dateTime = (new Date().getTime()/ 1000) - (86400*7); // 1 day    
+    var dateTime = (new Date().getTime()/ 1000) - (86400); // 1 day
+    // var dateTime = (new Date().getTime()/ 1000) - (86400/24); // 1 hour
 
+    console.log(mySessionCreds);
+    lfm.setSessionCredentials(mySessionCreds.username, mySessionCreds.key);   
 
-  console.log(mySessionCreds);
-  lfm.setSessionCredentials(mySessionCreds.username, mySessionCreds.key);   
+    lfm.user.getRecentTracks({
+      user: mySessionCreds.username,
+      from: dateTime,
+      limit: 200,
+      api_key: lfm.api_key
+    }, function (err, recentTracks) {
+      console.log(recentTracks);
+      if (err) {
+        console.log('error fetching songs');
+        console.log(err);
+      } else {
 
-  lfm.user.getRecentTracks({
-    user: mySessionCreds.username,
-    from: dateTime,
-    limit: 200,
-    api_key: lfm.api_key
-  }, function (err, recentTracks) {
-    // console.log(recentTracks);
-    if (err) {
-      console.log('error fetching songs');
-      console.log(err);
-    } else {
-      var output = {};
-      output.total = recentTracks['@attr'].total;
-      output.minutes = 0;
+        var report = new Report({
+          username: mySessionCreds.username,
+          key: mySessionCreds.key,
+          total: recentTracks['@attr'].total
+        });
 
-      var artists = {};
-      var songs = {};
+        report.save(function(err, report) {
+          console.log('New Report Created', report);
+          if (err) throw(err);
 
-      output.maxArtist = 0;
-      output.maxSong = 0;
-      output.maxArtistName;
-      output.maxArtistArt;
-      output.maxSongName;
-      output.maxSongArtist;
-      output.maxSongArt;
+          var trackArr = recentTracks.track;
 
-      // console.log(recentTracks);
-      var trackArr = recentTracks.track;
-      // console.log(trackArr[0].image);
+          (function(){
+            var i = 0;
+            function forloop(){
+              if(i<trackArr.length){
+                var artistName = trackArr[i].artist['#text'];
+                var songName = trackArr[i].name;
+            
+                // look for existing artists
+                Artist.findOne({artist: artistName}, function(err, artist) {
+                  if (artist) {
+                    Artist.update({artist: artistName}, {count: artist.count+1}, function(err,stuff) {
+                      if (err) throw(err);
+                      console.log('Existing Artist Saved', stuff);
 
-      for (var count = 0; count < trackArr.length; count++) {
-        if (songs[trackArr[count].name]) {
-          songs[trackArr[count].name]++;
-        } else {
-          songs[trackArr[count].name] = 1;
-        }
+                      // look for existing songs
+                      Song.findOne({artist: artistName, title: songName}, function(err, song) {
+                        if (song) {
+                          Song.update({artist: artistName, title: songName}, {count: song.count+1}, function(err,stuff) {
+                            console.log('Existing Song Saved', stuff);
+                            i++;
+                            forloop();
+                          });
+                        } else {
+                          var song = new Song({
+                            artist: artistName,
+                            title: songName,
+                            count: 1
+                          });
+                          song.save(function(err, stuff){
+                            console.log('New Song Saved', stuff);
 
-        if (songs[trackArr[count].name] > output.maxSong){
-          output.maxSong =  songs[trackArr[count].name];
-          output.maxSongName = trackArr[count].name;
-          output.maxSongArtist = trackArr[count].artist['#text'];
-        }
+                            i++;
+                            forloop();
+                          });
+                        }
+                      });
 
-        if (artists[trackArr[count].artist['#text']]) {
-          artists[trackArr[count].artist['#text']]++;
-        } else {
-          artists[trackArr[count].artist['#text']] = 1;
-        }
+                    });
 
-        if (artists[trackArr[count].artist['#text']] > output.maxArtist){
-          output.maxArtist =  artists[trackArr[count].artist['#text']];
-          output.maxArtistName = trackArr[count].artist['#text'];
-        }
-      }      
+                  } else {
+                    var artist = new Artist({
+                      artist: artistName,
+                      count: 1,
+                    });
+                    artist.save(function(err, stuff) {
+                      if (err) throw(err);
+                      console.log('New Artist Saved', stuff);
+                       
+                      // look for existing songs
+                      Song.findOne({artist: artistName, title: songName}, function(err, song) {
+                        if (song) {
+                          Song.update({artist: artistName, title: songName}, {count: song.count+1}, function(err,stuff) {
+                            console.log('Existing Song Saved', stuff);
+                            i++;
+                            forloop();
+                          });
+                        } else {
+                          var song = new Song({
+                            artist: artistName,
+                            title: songName,
+                            count: 1
+                          });
+                          song.save(function(err, stuff){
+                            console.log('New Song Saved', stuff);
 
-      (function(){
-        var i = 0;
-        function forloop(){
-          if(i<trackArr.length){
-            // console.log(trackArr[i].artist['#text'], trackArr[i].name);
-            lfm.track.getInfo({
-              'artist' : trackArr[i].artist['#text'],
-              'track' : trackArr[i].name
-            }, function (err, track) {
-              if (err) console.log(err);
-              // console.log(track);
-              output.minutes = output.minutes+((parseInt(track.duration)/1000)/60);
-              i++;
-              forloop();
-            });
-          }else{
-            // res.send(200, output);
-            // console.log(output);
+                            i++;
+                            forloop();
+                          });
+                        }
+                      });
 
-            lfm.track.getInfo({
-              'artist' : output.maxSongArtist,
-              'track': output.maxSongName
-            }, function(err, track) {
-              if (err) throw(err);
-              if (track.album && track.album.image) {
-                output.maxSongArt = track.album.image[track.album.image.length-1]['#text'];
+                    });
+                  };
+                });
+              }else{
+                // console.log('done loading db');
+                Song.find({}, function(err, result) {
+                  if (err) throw(err);
+                  var cont = true; 
+                  for (var i = 0; i<result.length; i++) {
+                    cont = cont && result[i].load;
+                  }
+                  // console.log(cont);
+                  if (!cont) {
+                    forloop();
+                  } else {
+                    Artist.find({}, function(err, result2) {
+                      console.log(result2);
+                      if (err) throw(err);
+                      var cont2 = true;
+                      for(var j = 0; j<result2.length; j++) {
+                        cont2 = cont2 && result2[j].load;
+                      }
+                      if (!cont) {
+                        forloop();
+                      } else {
+                        res.sendfile(__dirname+'/client/public/client/templates/index.html');                        
+                      }
+                    });
+                  }
+                });
               }
-
-              lfm.artist.getInfo({
-                'artist' : output.maxArtistName,
-              }, function(err, artist) {
-                if (err) throw(err);
-                  output.maxArtistArt = artist.image[artist.image.length-1]['#text'];
-                  // console.log(output.maxArtistArt)            
-
-                  var report = new Report({
-                    username: mySessionCreds.username,
-                    key: mySessionCreds.key,
-                    minutes: output.minutes,
-                    MaxArtistPlays: output.maxArtist,
-                    MaxArtist: output.maxArtistName,
-                    MaxArtistArt: output.maxArtistArt,
-                    MaxSongPlays: output.maxSong,
-                    MaxSongArtist: output.maxSongArtist,
-                    MaxSong: output.maxSongName,
-                    MaxSongArt: output.maxSongArt,
-                    total: output.total
-                  });
-                  // console.log(report);
-                  report.save(function(err, stuff) {
-                    if (err) throw(err);
-                    // console.log(stuff);
-                    // res.location('/buildGraph');
-                    res.sendfile(__dirname+'/client/public/client/templates/index.html');
-                  });
-              });
-            });
-          }
-        }
-        forloop();
-      })();
-
-      // try db again tmrw...
-      // for (var i=0; i<trackArr.length; i++) {
-      //   console.log(trackArr[i]);
-      //   if (trackArr[i].name && trackArr.artist) {
-      //     var song = new Song({
-      //       title: trackArr[i].name,
-      //       artist: trackArr[i].artist['#text']
-      //     });
-      //     console.log('saving');
-      //     song.save(function(err,stuff) {
-      //       if (err) {
-      //         throw err;
-      //       } else {
-      //         console.log(stuff);
-      //         res.send(302);
-      //       }
-      //     });
-      //   }
-      // }
-
-    }
-  });
+            }
+            forloop();
+          })();
+        });
+      }
+    });
 });
 
 app.get('/buildGraph', function(req, res){
   console.log('get request sent');
-  Report.find({}, function(err, report) {
-    // console.log(report);
-    console.log(report[0]);
-    res.send(200, report[0]);
+  // do math to update Report
+
+  var replace = {};
+
+  // could use find and do minutes calc but asnyc code...
+  Song.find({}).sort('-count').exec(function(err, sortedSongs) {
+    console.log(sortedSongs);
+    var topSong = sortedSongs[0];
+    replace.MaxSong = topSong.title;
+    replace.MaxSongPlays = topSong.count;
+    replace.MaxSongArtist = topSong.artist;
+    replace.minutes = 0;
+    replace.total = 0;
+
+    // ISNT GOING TO WORK UNTIL ASYNC
+    if(topSong.art) {
+      replace.MaxSongArt = topSong.art;      
+    }
+
+    for (var count=0; count<sortedSongs.length; count++) {
+      replace.minutes += (sortedSongs[count].minutes * sortedSongs[count].count);
+      replace.total += sortedSongs[count].count;
+    }
+
+    // console.log(countTotal);
+
+    Artist.find({}).sort('-count').exec(function(err, sortedArtists) {
+      // console.log(sortedArtists);
+      var topArtist = sortedArtists[0];
+      replace.MaxArtist = topArtist.artist;
+      replace.MaxArtistPlays = topArtist.count;
+      if(topArtist.art) {
+        replace.MaxArtistArt = topArtist.art;      
+      }
+
+      Report.find({}, function(err, report) {
+        // console.log(report[0], replace);
+        // Report.find({username: report[0].username}, function(err,result) {
+        //   console.log(result);
+        // });
+        Report.update({username: report[0].username}, replace, function (err, result){
+          Report.find({username: report[0].username}, function(err, result){
+            res.send(200, result[0]);
+          });
+        });
+      });
+
+    });
   });
 });
 
